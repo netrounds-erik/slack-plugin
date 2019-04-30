@@ -61,6 +61,47 @@ public class SlackNotifyStep extends Step {
     private String baseUrl;
     private String teamDomain;
 
+    private boolean botUser;
+    private boolean failOnError;
+    private boolean includeCommits;
+    private boolean includeTests;
+
+    public boolean getBotUser() {
+        return botUser;
+    }
+
+    @DataBoundSetter
+    public void setBotUser(boolean botUser) {
+        this.botUser = botUser;
+    }
+
+    public boolean getFailOnError() {
+        return failOnError;
+    }
+
+    @DataBoundSetter
+    public void setFailOnError(boolean failOnError) {
+        this.failOnError = failOnError;
+    }
+
+    public boolean getIncludeCommits() {
+        return includeCommits;
+    }
+
+    @DataBoundSetter
+    public void setIncludeCommits(boolean includeCommits) {
+        this.includeCommits = includeCommits;
+    }
+
+    public boolean getIncludeTests() {
+        return includeTests;
+    }
+
+    @DataBoundSetter
+    public void setIncludeTests(boolean includeTests) {
+        this.includeTests = includeTests;
+    }
+
     public String getCustomMessage() {
         return customMessage;
     }
