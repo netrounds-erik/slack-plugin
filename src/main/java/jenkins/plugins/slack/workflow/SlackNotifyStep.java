@@ -4,6 +4,7 @@ import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.HostnameRequirement;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
+import hudson.Util;
 import hudson.model.Item;
 import hudson.model.Project;
 import hudson.model.Run;
@@ -28,6 +29,7 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
@@ -51,6 +53,70 @@ import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCreden
 public class SlackNotifyStep extends Step {
 
     private static final Logger logger = Logger.getLogger(SlackNotifyStep.class.getName());
+
+    private String customMessage;
+    private String token;
+    private String tokenCredentialId;
+    private String channel;
+    private String baseUrl;
+    private String teamDomain;
+
+    public String getCustomMessage() {
+        return customMessage;
+    }
+
+    @DataBoundSetter
+    public void setCustomMessage(String customMessage) {
+        this.customMessage = customMessage;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    @DataBoundSetter
+    public void setToken(String token) {
+        this.token = Util.fixEmpty(token);
+    }
+
+    public String getTokenCredentialId() {
+        return tokenCredentialId;
+    }
+
+    @DataBoundSetter
+    public void setTokenCredentialId(String tokenCredentialId) {
+        this.tokenCredentialId = Util.fixEmpty(tokenCredentialId);
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    @DataBoundSetter
+    public void setChannel(String channel) {
+        this.channel = Util.fixEmpty(channel);
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    @DataBoundSetter
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = Util.fixEmpty(baseUrl);
+        if (this.baseUrl != null && !this.baseUrl.isEmpty() && !this.baseUrl.endsWith("/")) {
+            this.baseUrl += "/";
+        }
+    }
+
+    public String getTeamDomain() {
+        return teamDomain;
+    }
+
+    @DataBoundSetter
+    public void setTeamDomain(String teamDomain) {
+        this.teamDomain = Util.fixEmpty(teamDomain);
+    }
 
     @DataBoundConstructor
     public SlackNotifyStep() {
