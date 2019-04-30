@@ -50,7 +50,7 @@ import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCreden
  */
 public class SlackNotifyStep extends Step {
 
-    private static final Logger logger = Logger.getLogger(SlackSendStep.class.getName());
+    private static final Logger logger = Logger.getLogger(SlackNotifyStep.class.getName());
 
     @DataBoundConstructor
     public SlackNotifyStep() {
