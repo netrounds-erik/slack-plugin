@@ -27,6 +27,18 @@ applications like [RocketChat][rocketchat] and [Mattermost][mattermost].
    
 ### Pipeline job
 
+There are two supported pipeline steps; slackSend and slackNotify.
+
+#### slackNotify
+
+Automatically creates a slack notification that contains the build result and optionally additional information.
+
+```
+slackSend(channel: '#general', includeTests: true, includeCommits: true)
+```
+
+#### slackSend
+
 ```
 slackSend color: 'good', message: 'Message from Jenkins Pipeline'
 ```
@@ -51,7 +63,7 @@ node {
 For more information about slack messages see [Slack Messages Api](https://api.slack.com/docs/messages)
 and [Slack attachments Api](https://api.slack.com/docs/message-attachments)
 
-#### Threads Support
+##### Threads Support
 
 You can send a message and create a thread on that message using the pipeline step.
 The step returns an object which you can use to retrieve the thread ID. Send new messages with that thread ID as the
