@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
 import jenkins.plugins.slack.CredentialsObtainer;
+import jenkins.plugins.slack.JenkinsTokenExpander;
 import jenkins.plugins.slack.Messages;
 import jenkins.plugins.slack.SlackNotifier;
 import jenkins.plugins.slack.SlackService;
@@ -260,7 +261,19 @@ public class SlackNotifyStep extends Step {
             SlackService slackService = getSlackService(
                     baseUrl, teamDomain, botUser, channel, false, populatedToken);
 
-            final boolean publishSuccess = slackService.publish(step.customMessage, "good");
+            Run<?,?> build = getContext().get(Run.class);
+            JenkinsTokenExpander tokenExpander = new JenkinsTokenExpander(listener);
+            NotificationBuilder message = new NotificationBuilder(build, tokenExpander);
+            message.appendStatusMessage();
+            message.appendDuration();
+            message.appendOpenLink();
+
+            if (step.includeTests) {
+                message.appendTestSummary();
+            }
+
+            final boolean publishSuccess = slackService.publish(message.toString(), message.getColor());
+
             if (publishSuccess) {
                 return null; // This is intended since Void is not instantiable.
             } else if (step.failOnError) {
@@ -284,7 +297,7 @@ public class SlackNotifyStep extends Step {
             try {
                 item = getContext().get(Project.class);
                 if (item == null) {
-                    Run run = getContext().get(Run.class);
+                    Run<?, ?> run = getContext().get(Run.class);
                     if (run != null) {
                         item = run.getParent();
                     } else {
