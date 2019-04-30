@@ -33,6 +33,19 @@ import org.kohsuke.stapler.QueryParameter;
 import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
 
 /**
+ * TODO implement these parameters for the pipeline step.
+ * slackNotify(
+ *  baseUrl: string,
+ *  teamDomain: string,
+ *  channel: string,
+ *  tokenCredentialId: string,
+ *  customMessage: string,
+ *  includeCommits: boolean,
+ *  includeTests: boolean
+ * )
+ */
+
+/**
  * Workflow step to send a Slack channel build notification.
  */
 public class SlackNotifyStep extends Step {
