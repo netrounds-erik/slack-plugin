@@ -3,6 +3,7 @@ package jenkins.plugins.slack.workflow;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.HostnameRequirement;
 import com.google.common.collect.ImmutableSet;
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.Item;
@@ -12,11 +13,13 @@ import hudson.model.TaskListener;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
+import jenkins.plugins.slack.CredentialsObtainer;
 import jenkins.plugins.slack.Messages;
 import jenkins.plugins.slack.SlackNotifier;
 import jenkins.plugins.slack.SlackService;
@@ -230,7 +233,42 @@ public class SlackNotifyStep extends Step {
             Item item = getItemForCredentials();
             SlackNotifier.DescriptorImpl slackDesc = jenkins.getDescriptorByType(SlackNotifier.DescriptorImpl.class);
 
-            return null; // This is intended since Void is not instantiable.
+            String baseUrl = step.baseUrl != null ? step.baseUrl : slackDesc.getBaseUrl();
+            String teamDomain = step.teamDomain != null ? step.teamDomain : slackDesc.getTeamDomain();
+            String tokenCredentialId = step.tokenCredentialId != null ? step.tokenCredentialId : slackDesc
+                    .getTokenCredentialId();
+            String token = step.token;
+            boolean botUser = step.botUser || slackDesc.isBotUser();
+            String channel = step.channel != null ? step.channel : slackDesc.getRoom();
+
+            TaskListener listener = getContext().get(TaskListener.class);
+            Objects.requireNonNull(listener, "Listener is mandatory here");
+
+            listener.getLogger().println(Messages.slackNotifyStepValues(
+                    defaultIfEmpty(baseUrl), defaultIfEmpty(teamDomain), channel, botUser,
+                    defaultIfEmpty(tokenCredentialId), step.customMessage, step.includeCommits, step.includeTests));
+
+            final String populatedToken;
+            try {
+                populatedToken = CredentialsObtainer.getTokenToUse(tokenCredentialId, item, token);
+            } catch (IllegalArgumentException e) {
+                listener.error(Messages
+                        .notificationFailedWithException(e));
+                return null;
+            }
+
+            SlackService slackService = getSlackService(
+                    baseUrl, teamDomain, botUser, channel, false, populatedToken);
+
+            final boolean publishSuccess = slackService.publish(step.customMessage, "good");
+            if (publishSuccess) {
+                return null; // This is intended since Void is not instantiable.
+            } else if (step.failOnError) {
+                throw new AbortException(Messages.notificationFailed());
+            } else {
+                listener.error(Messages.notificationFailed());
+            }
+            return null;
         }
 
         /**
@@ -257,6 +295,10 @@ public class SlackNotifyStep extends Step {
                 logger.log(Level.INFO, "Exception obtaining item for credentials lookup. Only global credentials will be available", e);
             }
             return item;
+        }
+
+        private String defaultIfEmpty(String value) {
+            return Util.fixEmpty(value) != null ? value : Messages.slackSendStepValuesEmptyMessage();
         }
 
         SlackService getSlackService(String baseUrl, String team, boolean botUser, String channel, boolean replyBroadcast, String populatedToken) {
